@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Importar CSV{% endblock %}
+{% block page_id %}upload{% endblock %}
+{% block topbar_title %}⬆️ Importar datos CSV{% endblock %}
+
+{% block content %}
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start">
+
+  <!-- Upload form -->
+  <div class="panel">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">Carga Masiva de Movimientos</div>
+        <div class="panel-sub">Sube un archivo CSV con tus datos históricos</div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <form method="POST" action="{{ url_for('upload') }}"
+            enctype="multipart/form-data" id="upload-form">
+
+        <div class="drop-zone" id="drop-zone">
+          <div class="drop-zone-icon">📂</div>
+          <div class="drop-zone-text">
+            <strong>Arrastrá</strong> tu archivo aquí o <strong>clic para seleccionar</strong>
+          </div>
+          <div class="drop-zone-sub">Archivos compatibles: .csv y .xlsx — Máx. 10 MB</div>
+          <input type="file" id="file-input" name="archivo_csv"
+                 accept=".csv,.xlsx" style="display:none"/>
+        </div>
+
+        <p id="file-name" style="margin-top:.75rem;font-size:12px;
+          color:var(--accent);text-align:center;min-height:18px"></p>
+
+        <button type="submit" class="btn btn-primary btn-full" style="margin-top:1rem">
+          ⬆️ Procesar e Importar
+        </button>
+      </form>
+
+      <!-- Especificación CSV / Excel -->
+      <div class="csv-spec">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+          <div class="csv-spec-title" style="margin-bottom:0">Formato de columnas requerido</div>
+          <a href="{{ url_for('descargar_plantilla') }}" class="btn btn-success btn-sm">
+            ⬇️ Descargar Plantilla .xlsx
+          </a>
+        </div>
+        
+        <div style="font-size:11px;color:var(--text-sec);margin-bottom:.5rem"><strong>Hoja "Movimientos":</strong></div>
+        <div class="csv-cols" style="margin-bottom:1rem">
+          {% for col in ["Fecha","Tipo","Concepto","Monto","Categoria"] %}
+            <span class="csv-col-chip">{{ col }}</span>
+          {% endfor %}
+        </div>
+        
+        <div style="font-size:11px;color:var(--text-sec);margin-bottom:.5rem"><strong>Hoja "Stock":</strong></div>
+        <div class="csv-cols">
+          {% for col in ["Codigo","Descripcion","Cantidad","Stock_Minimo","Rubro"] %}
+            <span class="csv-col-chip">{{ col }}</span>
+          {% endfor %}
+        </div>
+
+        <p style="margin-top:1rem;font-size:11px;color:var(--text-muted);line-height:1.7">
+          <strong style="color:var(--text-sec)">Fecha:</strong> YYYY-MM-DD o formato Excel nativo &nbsp;·&nbsp;
+          <strong style="color:var(--text-sec)">Tipo:</strong> ingreso / egreso / venta / compra
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Instrucciones + ejemplo -->
+  <div>
+    <div class="panel" style="margin-bottom:1rem">
+      <div class="panel-header">
+        <div class="panel-title">Ejemplo de CSV válido</div>
+      </div>
+      <div class="panel-body">
+        <pre style="background:var(--bg-surface);border:1px solid var(--border);
+          border-left:3px solid var(--accent);padding:1rem;border-radius:var(--radius-sm);
+          font-family:'Courier New',monospace;font-size:12px;color:var(--green);
+          overflow-x:auto;line-height:1.8">Fecha,Tipo,Concepto,Monto,Categoria
+2026-04-01,ingreso,Venta productos cosmética,150000,Cosmética
+2026-04-02,egreso,Compra insumos logística,80000,Logística
+2026-04-03,venta,Servicio consultoría,95000,Consultoría
+2026-04-04,compra,Pago proveedor Tech SA,60000,Proveedores</pre>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Instrucciones</div>
+      </div>
+      <div class="panel-body">
+        <ol style="font-size:13px;color:var(--text-sec);line-height:2.2;
+          padding-left:1.25rem">
+          <li>Exportá tus movimientos desde tu sistema o home banking.</li>
+          <li>Guardá como <strong style="color:var(--accent)">.csv</strong> con las 5 columnas indicadas.</li>
+          <li>Arrastrá el archivo al área de carga o seleccionalo.</li>
+          <li>Hacé clic en <strong style="color:var(--accent)">Procesar e Importar</strong>.</li>
+          <li>El sistema validará cada fila e insertará las válidas.</li>
+        </ol>
+        <div style="margin-top:1rem;padding:.75rem 1rem;background:var(--amber-bg);
+          border:1px solid rgba(245,158,11,.2);border-radius:var(--radius-sm);
+          font-size:12px;color:var(--amber)">
+          ⚡ Los registros con tipo o fecha inválidos se omiten automáticamente.
+          Se informará cuántos fueron importados y cuántos fallaron.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Acceso rápido a exportación -->
+<div style="margin-top:1.5rem;display:flex;gap:1rem;flex-wrap:wrap">
+  <a href="{{ url_for('exportar') }}?tabla=movimientos" class="btn btn-ghost">
+    ⬇️ Exportar Movimientos (.xlsx)
+  </a>
+  <a href="{{ url_for('exportar') }}?tabla=stock" class="btn btn-ghost">
+    ⬇️ Exportar Stock (.xlsx)
+  </a>
+</div>
+
+{% endblock %}

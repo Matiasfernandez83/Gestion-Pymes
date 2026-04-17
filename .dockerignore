@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.env
+.env
+
+# Base de Datos y Uploads Locales (No subir la DB del dev a la nube)
+database.db
+uploads/
+*.xlsx
+*.csv
+
+# Entornos Virtuales
+venv/
+env/
+.venv/
+
+# IDEs
+.vscode/
+.idea/

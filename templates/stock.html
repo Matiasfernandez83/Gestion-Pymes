@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Inventario y Stock{% endblock %}
+{% block page_id %}stock{% endblock %}
+{% block topbar_title %}📦 Inventario y Stock{% endblock %}
+
+{% block content %}
+
+<div class="panel" style="margin-bottom:1.5rem">
+  <div class="panel-header">
+    <div class="panel-title">Filtros de Stock</div>
+    <div class="panel-actions">
+      <a href="{{ url_for('exportar') }}?tabla=stock" class="btn btn-success btn-sm">
+        ⬇️ Exportar a Excel
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ── Tabla de Stock ────────────────────────────────────── -->
+<div class="panel">
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Código</th><th>Descripción</th><th>Rubro</th>
+          <th style="width:150px">Estado</th>
+          <th style="text-align:center">Cantidad</th>
+          <th style="text-align:center">Mínimo</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if items %}
+          {% for item in items %}
+          {% set pct = (item['cantidad'] / item['stock_minimo'] * 100) if item['stock_minimo'] > 0 else 100 %}
+          <tr>
+            <td style="font-family:monospace;color:var(--accent)">{{ item['codigo'] }}</td>
+            <td style="max-width:300px;font-weight:500;color:var(--text-primary)">{{ item['descripcion'] }}</td>
+            <td>{{ item['rubro'] }}</td>
+            <td>
+              <div class="stock-bar-wrap">
+                <div class="stock-bar" data-pct="{{ pct }}"></div>
+              </div>
+            </td>
+            <td style="text-align:center;font-weight:700">
+               {% if item['cantidad'] <= item['stock_minimo'] %}
+                 <span style="color:var(--red)">{{ item['cantidad'] }}</span>
+               {% else %}
+                 <span style="color:var(--green)">{{ item['cantidad'] }}</span>
+               {% endif %}
+            </td>
+            <td style="text-align:center;color:var(--text-muted)">{{ item['stock_minimo'] }}</td>
+            <td style="text-align:right">
+              <form method="POST" action="{{ url_for('actualizar_stock', item_id=item['id']) }}" style="display:flex;gap:4px;justify-content:flex-end">
+                <input type="number" name="cantidad" value="{{ item['cantidad'] }}" class="form-control" style="width:70px;padding:4px 8px;font-size:12px;text-align:center" min="0">
+                <button type="submit" class="btn btn-primary btn-sm">Guardar</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="7" class="table-empty">
+            No hay productos en el inventario.
+          </td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

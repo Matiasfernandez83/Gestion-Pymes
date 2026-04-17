@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_id %}dashboard{% endblock %}
+{% block topbar_title %}📊 Dashboard Principal{% endblock %}
+{% block topbar_meta %}
+  Actualizado: <span id="last-update" style="color:var(--text-muted)">cargando...</span>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── KPI Cards ─────────────────────────────────────────────────── -->
+<div class="kpi-grid">
+  <a href="{{ url_for('detalle') }}?tipo=ingreso" class="kpi-card"
+     id="kpi-ingresos" style="--kpi-color:var(--green);--kpi-icon-bg:var(--green-bg)">
+    <div class="kpi-icon-wrap">💰</div>
+    <div class="kpi-label">Ingresos Totales</div>
+    <div class="kpi-value kpi-loading">Cargando...</div>
+    <div class="kpi-sub">Ventas + Ingresos</div>
+  </a>
+  <a href="{{ url_for('detalle') }}?tipo=egreso" class="kpi-card"
+     id="kpi-egresos" style="--kpi-color:var(--red);--kpi-icon-bg:var(--red-bg)">
+    <div class="kpi-icon-wrap">📤</div>
+    <div class="kpi-label">Egresos Totales</div>
+    <div class="kpi-value kpi-loading">Cargando...</div>
+    <div class="kpi-sub">Compras + Gastos</div>
+  </a>
+  <a href="{{ url_for('detalle') }}" class="kpi-card"
+     id="kpi-saldo" style="--kpi-icon-bg:rgba(59,130,246,.1)">
+    <div class="kpi-icon-wrap">⚖️</div>
+    <div class="kpi-label">Saldo Neto</div>
+    <div class="kpi-value kpi-loading">Cargando...</div>
+    <div class="kpi-sub">Ingresos − Egresos</div>
+  </a>
+  <a href="{{ url_for('stock_view') }}" class="kpi-card"
+     id="kpi-stock" style="--kpi-color:var(--amber);--kpi-icon-bg:var(--amber-bg)">
+    <div class="kpi-icon-wrap">⚠️</div>
+    <div class="kpi-label">Stock Crítico</div>
+    <div class="kpi-value kpi-loading">Cargando...</div>
+    <div class="kpi-sub">Ítems bajo mínimo</div>
+  </a>
+</div>
+
+<!-- ── Charts Row ──────────────────────────────────────────────── -->
+<div class="charts-row">
+  <div class="panel">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">Ingresos vs. Egresos por Mes</div>
+        <div class="panel-sub">Últimos 6 meses</div>
+      </div>
+      <a href="{{ url_for('exportar') }}" class="btn btn-ghost btn-sm">⬇️ Exportar</a>
+    </div>
+    <div class="panel-body">
+      <div class="chart-wrap"><canvas id="chart-mes"></canvas></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">Ingresos por Categoría</div>
+    </div>
+    <div class="panel-body">
+      <div class="chart-wrap" style="height:240px"><canvas id="chart-cat"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Movimientos Recientes ───────────────────────────────────── -->
+<div class="section-title">Movimientos Recientes</div>
+<div class="panel">
+  <div class="panel-header">
+    <div class="panel-title">Últimas Operaciones</div>
+    <a href="{{ url_for('detalle') }}" class="btn btn-ghost btn-sm">Ver todos →</a>
+  </div>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Fecha</th><th>Tipo</th><th>Concepto</th>
+          <th>Categoría</th><th>Monto</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-recientes">
+        <tr><td colspan="5" class="table-empty">
+          <div class="skeleton" style="width:60%;margin:0 auto"></div>
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

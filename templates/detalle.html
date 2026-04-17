@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Movimientos{% endblock %}
+{% block page_id %}detalle{% endblock %}
+{% block topbar_title %}📋 Movimientos{% endblock %}
+{% block topbar_meta %}
+  {{ movimientos|length }} resultado(s)
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Panel filtros + nuevo movimiento ───────────────────────── -->
+<div class="panel" style="margin-bottom:1.5rem">
+  <div class="panel-header">
+    <div class="panel-title">Filtros</div>
+    <div class="panel-actions">
+      <a href="{{ url_for('exportar') }}?tabla=movimientos" class="btn btn-success btn-sm">
+        ⬇️ Exportar a Excel
+      </a>
+      <button class="btn btn-primary btn-sm" onclick="toggleForm('form-nuevo')">
+        ＋ Nuevo Movimiento
+      </button>
+    </div>
+  </div>
+
+  <!-- Formulario filtro -->
+  <form id="filter-form" method="GET" action="{{ url_for('detalle') }}">
+    <div class="filter-bar">
+      <div class="filter-group">
+        <label class="filter-label">Tipo</label>
+        <select name="tipo" class="form-control" style="width:140px">
+          <option value="">Todos</option>
+          {% for t in ["ingreso","egreso","venta","compra"] %}
+            <option value="{{ t }}" {% if tipo == t %}selected{% endif %}>
+              {{ t|capitalize }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Desde</label>
+        <input type="date" name="fecha_ini" class="form-control"
+               value="{{ fecha_ini }}" style="width:150px"/>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Hasta</label>
+        <input type="date" name="fecha_fin" class="form-control"
+               value="{{ fecha_fin }}" style="width:150px"/>
+      </div>
+      <button type="submit" class="btn btn-primary">🔍 Filtrar</button>
+      <button type="button" class="btn btn-ghost" onclick="clearFilters()">✕ Limpiar</button>
+    </div>
+  </form>
+
+  <!-- Formulario nuevo movimiento (colapsable) -->
+  <div id="form-nuevo" style="display:none;padding:1.25rem 1.5rem;border-top:1px solid var(--border);
+    background:var(--bg-surface)">
+    <form method="POST" action="{{ url_for('nuevo_movimiento') }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.75rem;align-items:end">
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Fecha</label>
+          <input type="date" name="fecha" class="form-control" required
+                 value="{{ fecha_ini or '' }}"/>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Tipo</label>
+          <select name="tipo" class="form-control" required>
+            {% for t in ["ingreso","egreso","venta","compra"] %}
+              <option value="{{ t }}">{{ t|capitalize }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0;grid-column:span 2">
+          <label class="form-label">Concepto</label>
+          <input type="text" name="concepto" class="form-control" required
+                 placeholder="Descripción del movimiento"/>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Monto (ARS)</label>
+          <input type="number" name="monto" class="form-control" step="0.01" min="0"
+                 required placeholder="0.00"/>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Categoría</label>
+          <input type="text" name="categoria" class="form-control"
+                 placeholder="Cosmética, Logística..." value="General"/>
+        </div>
+        <button type="submit" class="btn btn-primary">✅ Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ── Tabla de movimientos ────────────────────────────────────── -->
+<div class="panel">
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>#</th><th>Fecha</th><th>Tipo</th>
+          <th>Concepto</th><th>Categoría</th><th>Monto</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if movimientos %}
+          {% for m in movimientos %}
+          <tr>
+            <td style="color:var(--text-muted);font-size:11px">{{ m['id'] }}</td>
+            <td>{{ m['fecha'] }}</td>
+            <td>
+              <span class="badge badge-{{ m['tipo'] }}">{{ m['tipo'] }}</span>
+            </td>
+            <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+              {{ m['concepto'] }}
+            </td>
+            <td>{{ m['categoria'] }}</td>
+            <td>
+              {# Formato ARS en el servidor #}
+              $&nbsp;{{ "{:,.2f}".format(m['monto']).replace(",","X").replace(".",",").replace("X",".") }}
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="6" class="table-empty">
+            No se encontraron movimientos con los filtros aplicados.
+          </td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+  {% if movimientos %}
+  <div class="table-footer">
+    Mostrando {{ movimientos|length }} registro(s)
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleForm(id) {
+  const el = document.getElementById(id);
+  el.style.display = el.style.display === "none" ? "block" : "none";
+}
+</script>
+{% endblock %}
