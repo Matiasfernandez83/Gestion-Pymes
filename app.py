@@ -611,6 +611,92 @@ def nuevo_movimiento():
     return redirect(url_for("detalle"))
 
 # ══════════════════════════════════════════════════════════════════
+# GESTIÓN DE USUARIOS
+# ══════════════════════════════════════════════════════════════════
+
+@app.route("/usuarios")
+@login_required
+def usuarios():
+    """Vista principal para gestión de usuarios."""
+    db = get_db()
+    users = db.execute("SELECT id, username, rol FROM usuarios ORDER BY id").fetchall()
+    return render_template("usuarios.html", usuarios=users)
+
+@app.route("/usuarios/nuevo", methods=["POST"])
+@login_required
+def nuevo_usuario():
+    """Creación de nuevos usuarios (solo Admins)"""
+    if session.get("rol") != "admin":
+        flash("Solo los administradores pueden crear nuevos usuarios.", "error")
+        return redirect(url_for("usuarios"))
+
+    username = request.form.get("username", "").strip()
+    password = request.form.get("password", "")
+    rol = request.form.get("rol", "usuario")
+    
+    if not username or not password:
+        flash("Usuario y contraseña son requeridos.", "error")
+        return redirect(url_for("usuarios"))
+
+    db = get_db()
+    exists = db.execute("SELECT id FROM usuarios WHERE username = ?", (username,)).fetchone()
+    if exists:
+        flash("El nombre de usuario ya existe.", "error")
+        return redirect(url_for("usuarios"))
+
+    hashed_pw = generate_password_hash(password)
+    db.execute(
+        "INSERT INTO usuarios (username, password, rol) VALUES (?, ?, ?)",
+        (username, hashed_pw, rol)
+    )
+    db.commit()
+    flash(f"Usuario {username} creado exitosamente.", "success")
+    return redirect(url_for("usuarios"))
+
+@app.route("/usuarios/cambiar-clave", methods=["POST"])
+@login_required
+def cambiar_clave():
+    """Permite al usuario conectado cambiar su propia contraseña."""
+    old_pw = request.form.get("old_password", "")
+    new_pw = request.form.get("new_password", "")
+    
+    if not old_pw or not new_pw:
+        flash("Debe completar ambas contraseñas.", "error")
+        return redirect(url_for("usuarios"))
+
+    user_id = session.get("user_id")
+    db = get_db()
+    row = db.execute("SELECT password FROM usuarios WHERE id = ?", (user_id,)).fetchone()
+    
+    if row and check_password_hash(row["password"], old_pw):
+        new_hashed = generate_password_hash(new_pw)
+        db.execute("UPDATE usuarios SET password = ? WHERE id = ?", (new_hashed, user_id))
+        db.commit()
+        flash("Contraseña actualizada correctamente.", "success")
+    else:
+        flash("La contraseña actual es incorrecta.", "error")
+        
+    return redirect(url_for("usuarios"))
+
+@app.route("/usuarios/eliminar/<int:uid>", methods=["POST"])
+@login_required
+def eliminar_usuario(uid):
+    """Elimina un usuario (solo Admins y validando que no se auto-elimine)"""
+    if session.get("rol") != "admin":
+        flash("Solo los administradores pueden eliminar usuarios.", "error")
+        return redirect(url_for("usuarios"))
+        
+    if uid == session.get("user_id"):
+        flash("No puedes eliminar tu propio usuario.", "error")
+        return redirect(url_for("usuarios"))
+        
+    db = get_db()
+    db.execute("DELETE FROM usuarios WHERE id = ?", (uid,))
+    db.commit()
+    flash("Usuario eliminado correctamente.", "success")
+    return redirect(url_for("usuarios"))
+
+# ══════════════════════════════════════════════════════════════════
 # ENTRY POINT
 # ══════════════════════════════════════════════════════════════════
 

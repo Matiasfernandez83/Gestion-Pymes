@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Usuarios{% endblock %}
+{% block page_id %}usuarios{% endblock %}
+{% block topbar_title %}Gestión de Usuarios{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col">
+    <div class="card" style="margin-bottom: 2rem;">
+      <h3 style="margin-bottom: 1rem;">Mi Seguridad</h3>
+      <form action="{{ url_for('cambiar_clave') }}" method="POST" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label">Contraseña Actual</label>
+          <input type="password" name="old_password" class="form-control" required style="width: 200px;">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label">Nueva Contraseña</label>
+          <input type="password" name="new_password" class="form-control" required style="width: 200px;">
+        </div>
+        <button type="submit" class="btn btn-warning">🔑 Actualizar Mi Contraseña</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Columna del Catálogo (Izquierda) -->
+  <div class="col" style="flex: 2;">
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3>Directorio de Accesos</h3>
+      </div>
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Usuario</th>
+              <th>Rol / Permisos</th>
+              <th style="text-align: right;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for u in usuarios %}
+            <tr>
+              <td>#{{ u.id }}</td>
+              <td><strong>{{ u.username }}</strong></td>
+              <td>
+                <span class="badge badge-{% if u.rol == 'admin' %}warning{% else %}primary{% endif %}">
+                  {{ u.rol | capitalize }}
+                </span>
+              </td>
+              <td style="text-align: right;">
+                {% if session.rol == 'admin' and session.user_id != u.id %}
+                <form action="{{ url_for('eliminar_usuario', uid=u.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Seguro que deseas revocar el acceso a este usuario permanentemente?');">
+                  <button type="submit" class="btn btn-danger btn-sm">🗑️ Borrar</button>
+                </form>
+                {% elif session.user_id == u.id %}
+                  <span style="color:var(--text-muted);font-size:0.85rem">Tú</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="4" style="text-align:center; padding: 2rem; color:var(--text-muted)">No hay usuarios registrados.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Columna para Nuevo Usuario (Derecha) -->
+  {% if session.rol == 'admin' %}
+  <div class="col" style="flex: 1;">
+    <div class="card" style="position: sticky; top: 2rem;">
+      <h3 style="margin-bottom: 1.5rem;">Alta de Colaborador</h3>
+      <form action="{{ url_for('nuevo_usuario') }}" method="POST">
+        <div class="form-group">
+          <label class="form-label" for="username">Nombre de Usuario (Login)</label>
+          <input type="text" id="username" name="username" class="form-control" required placeholder="ej: cajero_luis">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="password">Contraseña Inicial</label>
+          <input type="text" id="password" name="password" class="form-control" required placeholder="ej: ventas123">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="rol">Nivel de Acceso (Rol)</label>
+          <select id="rol" name="rol" class="form-control">
+            <option value="usuario">Usuario Estándar (Vendedor/Cajero)</option>
+            <option value="admin">Administrador (Total)</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">
+          ➕ Crear Cuenta
+        </button>
+      </form>
+      <p style="margin-top: 1rem; color: var(--text-muted); font-size: 0.85rem;">
+        Nota: Al ser creados, los colaboradores podrán acceder inmediatamente con estas credenciales.
+      </p>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
